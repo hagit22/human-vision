@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איך העין רואה?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Varela+Round&family=Heebo:wght@300;400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: #0f1923;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Slide container ── */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    z-index: 100;
+  }
+  .nav button {
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    font-family: 'Heebo', sans-serif;
+    font-size: 18px;
+    padding: 10px 28px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+  }
+  .nav button:hover { background: rgba(255,255,255,0.3); }
+  .dots { display: flex; gap: 8px; }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+  .dot.active { background: #f0c040; }
+
+  /* ── Shared text styles ── */
+  .slide-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+  .slide-sub {
+    font-size: clamp(16px, 2.2vw, 24px);
+    font-weight: 300;
+    text-align: center;
+    color: rgba(255,255,255,0.75);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+  .highlight { color: #f0c040; font-weight: 700; }
+
+  /* ══════════════════════════════════
+     SLIDE 1 — Title
+  ══════════════════════════════════ */
+  #s1 { background: radial-gradient(ellipse at center, #1a2a3a 0%, #0f1923 70%); }
+
+  .eye-icon {
+    width: 120px; height: 60px;
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .eye-white {
+    width: 120px; height: 60px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 0 40px rgba(240,192,64,0.5);
+  }
+  .eye-iris {
+    width: 48px; height: 48px;
+    background: radial-gradient(circle, #4fc3f7, #0277bd);
+    border-radius: 50%;
+    position: absolute;
+    top: 6px; left: 36px;
+    animation: blink 4s infinite;
+  }
+  .eye-pupil {
+    width: 20px; height: 20px;
+    background: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 14px; left: 50px;
+  }
+  @keyframes blink {
+    0%,90%,100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.05); }
+  }
+
+  /* ══════════════════════════════════
+     SLIDE 2 — The scene: person & friend
+  ══════════════════════════════════ */
+  #s2 { background: linear-gradient(160deg, #1a2a1a 0%, #0f1923 100%); }
+
+  .scene2 {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 140px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  /* Simple SVG people */
+  .person { display: flex; flex-direction: column; align-items: center; }
+  .person-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 8px;
+  }
+
+  /* Light bounce arrows */
+  .bounce-arrow {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    opacity: 0;
+    animation: fadeInBounce 1s 0.8s forwards;
+  }
+  @keyframes fadeInBounce {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ══════════════════════════════════
+     SLIDE 3 — Light rays traveling
+  ══════════════════════════════════ */
+  #s3 { background: linear-gradient(160deg, #1a1a2e 0%, #0f1923 100%); }
+
+  .ray-scene {
+    position: relative;
+    width: 640px;
+    height: 200px;
+    margin-bottom: 24px;
+  }
+
+  .ray-line {
+    position: absolute;
+    height: 3px;
+    border-radius: 2px;
+    transform-origin: left center;
+    animation: shootRay 1.2s ease-out forwards;
+    opacity: 0;
+  }
+  @keyframes shootRay {
+    0%   { width: 0; opacity: 1; }
+    80%  { opacity: 1; }
+    100% { opacity: 0.9; }
+  }
+
+  .ray1 { background: linear-gradient(90deg, #f0c040, transparent); top: 40px;  left: 30px; width: 580px; transform: rotate(8deg);  animation-delay: 0.1s; }
+  .ray2 { background: linear-gradient(90deg, #f0c040, transparent); top: 100px; left: 30px; width: 580px; transform: rotate(0deg);  animation-delay: 0.3s; }
+  .ray3 { background: linear-gradient(90deg, #f0c040, transparent); top: 160px; left: 30px; width: 580px; transform: rotate(-8deg); animation-delay: 0.5s; }
+
+  /* Small friend SVG on left, eye on right */
+  .friend-small { position: absolute; left: 0; top: 50px; }
+  .eye-small    { position: absolute; right: 0; top: 60px; }
+
+  /* ══════════════════════════════════
+     SLIDE 4 — The lens & refraction
+  ══════════════════════════════════ */
+  #s4 { background: linear-gradient(160deg, #0d1f2d 0%, #0f1923 100%); }
+
+  .lens-scene {
+    position: relative;
+    width: 600px;
+    height: 280px;
+    margin-bottom: 24px;
+  }
+
+  /* Incoming rays */
+  .in-ray {
+    position: absolute;
+    height: 2.5px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #f0c040aa, #f0c040);
+    left: 20px;
+    transform-origin: left center;
+    animation: growRay 1s ease-out forwards;
+    opacity: 0;
+  }
+  @keyframes growRay {
+    from { width: 0; opacity: 0; }
+    to   { width: 200px; opacity: 1; }
+  }
+  .in1 { top: 80px;  transform: rotate(10deg);  animation-delay: 0.1s; }
+  .in2 { top: 140px; transform: rotate(0deg);   animation-delay: 0.2s; }
+  .in3 { top: 200px; transform: rotate(-10deg); animation-delay: 0.3s; }
+
+  /* Lens shape */
+  .lens-shape {
+    position: absolute;
+    left: 220px;
+    top: 60px;
+    width: 36px;
+    height: 160px;
+    background: rgba(100,200,255,0.25);
+    border: 3px solid #4fc3f7;
+    border-radius: 50%;
+    animation: glowLens 2s 0.5s infinite alternate;
+  }
+  @keyframes glowLens {
+    from { box-shadow: 0 0 10px #4fc3f7aa; }
+    to   { box-shadow: 0 0 30px #4fc3f7; }
+  }
+  .lens-label-svg {
+    position: absolute;
+    left: 190px;
+    top: 230px;
+    color: #4fc3f7;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    width: 100px;
+  }
+
+  /* Outgoing converging rays */
+  .out-ray {
+    position: absolute;
+    height: 2.5px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #e74c3c, #e74c3caa);
+    left: 256px;
+    transform-origin: left center;
+    opacity: 0;
+    animation: growRayOut 1s ease-out forwards;
+  }
+  @keyframes growRayOut {
+    from { width: 0; opacity: 0; }
+    to   { width: 180px; opacity: 1; }
+  }
+  .out1 { top: 97px;  transform: rotate(18deg);  animation-delay: 0.7s; }
+  .out2 { top: 140px; transform: rotate(0deg);   animation-delay: 0.8s; }
+  .out3 { top: 183px; transform: rotate(-18deg); animation-delay: 0.9s; }
+
+  /* Retina line */
+  .retina-line {
+    position: absolute;
+    right: 40px;
+    top: 60px;
+    width: 6px;
+    height: 160px;
+    background: linear-gradient(180deg, transparent, #8e44ad, transparent);
+    border-radius: 3px;
+    animation: fadeIn 0.5s 1.2s forwards;
+    opacity: 0;
+  }
+  .retina-label {
+    position: absolute;
+    right: 0px;
+    top: 230px;
+    color: #8e44ad;
+    font-size: 13px;
+    font-weight: 700;
+    animation: fadeIn 0.5s 1.2s forwards;
+    opacity: 0;
+  }
+
+  /* Refraction label */
+  .refraction-badge {
+    position: absolute;
+    left: 170px;
+    top: 18px;
+    background: rgba(79,195,247,0.15);
+    border: 1.5px solid #4fc3f7;
+    color: #4fc3f7;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    animation: fadeIn 0.5s 0.5s forwards;
+    opacity: 0;
+  }
+
+  /* ══════════════════════════════════
+     SLIDE 5 — Retina & brain
+  ══════════════════════════════════ */
+  #s5 { background: linear-gradient(160deg, #1f0d2d 0%, #0f1923 100%); }
+
+  .brain-scene {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 28px;
+  }
+
+  .retina-box {
+    width: 120px; height: 160px;
+    border: 3px solid #8e44ad;
+    border-radius: 12px;
+    background: rgba(142,68,173,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    animation: pulseRetina 2s infinite;
+  }
+  @keyframes pulseRetina {
+    0%,100% { box-shadow: 0 0 10px #8e44ad55; }
+    50%      { box-shadow: 0 0 30px #8e44adaa; }
+  }
+  .retina-box-label { font-size: 12px; color: #8e44ad; font-weight: 700; }
+
+  .arrow-brain {
+    font-size: 36px;
+    color: rgba(255,255,255,0.4);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 0.4; }
+    50%      { opacity: 1; }
+  }
+
+  .brain-box {
+    width: 140px; height: 160px;
+    border: 3px solid #2ecc71;
+    border-radius: 12px;
+    background: rgba(46,204,113,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    animation: pulseBrain 2s 0.5s infinite;
+  }
+  @keyframes pulseBrain {
+    0%,100% { box-shadow: 0 0 10px #2ecc7155; }
+    50%      { box-shadow: 0 0 30px #2ecc71aa; }
+  }
+  .brain-box-label { font-size: 12px; color: #2ecc71; font-weight: 700; }
+
+  .vision-box {
+    width: 120px; height: 160px;
+    border: 3px solid #f0c040;
+    border-radius: 12px;
+    background: rgba(240,192,64,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    animation: pulseVision 2s 1s infinite;
+  }
+  @keyframes pulseVision {
+    0%,100% { box-shadow: 0 0 10px #f0c04055; }
+    50%      { box-shadow: 0 0 30px #f0c040aa; }
+  }
+  .vision-box-label { font-size: 12px; color: #f0c040; font-weight: 700; }
+
+  /* ══════════════════════════════════
+     SLIDE 6 — Summary
+  ══════════════════════════════════ */
+  #s6 { background: radial-gradient(ellipse at center, #1a2a3a 0%, #0f1923 70%); }
+
+  .summary-steps {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .step-pill {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    animation: popIn 0.4s ease-out backwards;
+  }
+  .step-pill:nth-child(1) { border-color: #f0c040; color: #f0c040; animation-delay: 0.1s; }
+  .step-pill:nth-child(3) { border-color: #4fc3f7; color: #4fc3f7; animation-delay: 0.3s; }
+  .step-pill:nth-child(5) { border-color: #e74c3c; color: #e74c3c; animation-delay: 0.5s; }
+  .step-pill:nth-child(7) { border-color: #8e44ad; color: #8e44ad; animation-delay: 0.7s; }
+  .step-pill:nth-child(9) { border-color: #2ecc71; color: #2ecc71; animation-delay: 0.9s; }
+
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .arrow-step { font-size: 24px; color: rgba(255,255,255,0.3); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Slide-in text animation */
+  .fade-up {
+    opacity: 0;
+    animation: fadeIn 0.7s ease-out forwards;
+  }
+  .fade-up.d1 { animation-delay: 0.1s; }
+  .fade-up.d2 { animation-delay: 0.4s; }
+  .fade-up.d3 { animation-delay: 0.7s; }
+  .fade-up.d4 { animation-delay: 1.0s; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SLIDE 1 ═══════════ -->
+<div class="slide active" id="s1">
+  <div class="eye-icon">
+    <div class="eye-white"></div>
+    <div class="eye-iris"></div>
+    <div class="eye-pupil"></div>
+  </div>
+  <div class="slide-title fade-up d1">איך העין רואה?</div>
+  <div class="slide-sub fade-up d2">הפיזיקה מאחורי הראייה האנושית</div>
+  <br>
+  <div class="slide-sub fade-up d3" style="font-size:15px; color:rgba(255,255,255,0.4);">לחצו ← להתחיל</div>
+</div>
+
+<!-- ═══════════ SLIDE 2 ═══════════ -->
+<div class="slide" id="s2">
+  <div class="slide-title fade-up d1">מה קורה כשאנחנו מסתכלים על חבר?</div>
+
+  <div class="scene2">
+    <!-- Friend (left) -->
+    <div class="person">
+      <svg width="80" height="130" viewBox="0 0 80 130">
+        <!-- body -->
+        <rect x="25" y="55" width="30" height="50" rx="8" fill="#e67e22" opacity="0.9"/>
+        <!-- head -->
+        <circle cx="40" cy="38" r="22" fill="#f5cba7"/>
+        <!-- eyes -->
+        <circle cx="32" cy="36" r="3" fill="#333"/>
+        <circle cx="48" cy="36" r="3" fill="#333"/>
+        <!-- smile -->
+        <path d="M32 46 Q40 54 48 46" stroke="#333" stroke-width="2" fill="none"/>
+        <!-- legs -->
+        <rect x="27" y="103" width="10" height="25" rx="5" fill="#2c3e50"/>
+        <rect x="43" y="103" width="10" height="25" rx="5" fill="#2c3e50"/>
+      </svg>
+      <div class="person-label">החבר</div>
+    </div>
+
+    <!-- Light rays between them -->
+    <div class="bounce-arrow">
+      <svg width="140" height="30" viewBox="0 0 140 30">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#f0c040"/>
+          </marker>
+        </defs>
+        <line x1="0" y1="15" x2="130" y2="15" stroke="#f0c040" stroke-width="2.5"
+              stroke-dasharray="8,4" marker-start="url(#arrowhead)"/>
+        <text x="70" y="10" text-anchor="middle" fill="#f0c040" font-size="11" font-family="Heebo">אור מוחזר</text>
+      </svg>
+    </div>
+
+    <!-- Observer (right) -->
+    <div class="person">
+      <svg width="80" height="130" viewBox="0 0 80 130">
+        <rect x="25" y="55" width="30" height="50" rx="8" fill="#3498db" opacity="0.9"/>
+        <circle cx="40" cy="38" r="22" fill="#f5cba7"/>
+        <circle cx="32" cy="36" r="3" fill="#333"/>
+        <circle cx="48" cy="36" r="3" fill="#333"/>
+        <!-- curious expression -->
+        <path d="M33 47 Q40 52 47 47" stroke="#333" stroke-width="2" fill="none"/>
+        <rect x="27" y="103" width="10" height="25" rx="5" fill="#2c3e50"/>
+        <rect x="43" y="103" width="10" height="25" rx="5" fill="#2c3e50"/>
+      </svg>
+      <div class="person-label">אנחנו</div>
+    </div>
+  </div>
+
+  <div class="slide-sub fade-up d2">
+    אור מוחזר מהחבר <span class="highlight">נכנס לעין שלנו</span> דרך האישון
+  </div>
+</div>
+
+<!-- ═══════════ SLIDE 3 ═══════════ -->
+<div class="slide" id="s3">
+  <div class="slide-title fade-up d1">קרני האור נוסעות אל העין</div>
+
+  <div class="ray-scene">
+    <!-- Small friend figure -->
+    <svg class="friend-small" width="55" height="100" viewBox="0 0 55 100">
+      <rect x="15" y="40" width="25" height="38" rx="6" fill="#e67e22" opacity="0.8"/>
+      <circle cx="27" cy="25" r="16" fill="#f5cba7"/>
+      <circle cx="21" cy="24" r="2.5" fill="#333"/>
+      <circle cx="33" cy="24" r="2.5" fill="#333"/>
+      <rect x="17" y="76" width="8" height="20" rx="4" fill="#2c3e50"/>
+      <rect x="30" y="76" width="8" height="20" rx="4" fill="#2c3e50"/>
+    </svg>
+
+    <!-- Animated rays -->
+    <div class="ray-line ray1"></div>
+    <div class="ray-line ray2"></div>
+    <div class="ray-line ray3"></div>
+
+    <!-- Eye on right -->
+    <svg class="eye-small" width="70" height="45" viewBox="0 0 70 45">
+      <ellipse cx="35" cy="22" rx="33" ry="20" fill="white"/>
+      <circle cx="35" cy="22" r="14" fill="#4fc3f7"/>
+      <circle cx="35" cy="22" r="7" fill="#1a2a3a"/>
+      <ellipse cx="35" cy="22" rx="33" ry="20" fill="none" stroke="#2c3e50" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="slide-sub fade-up d2">
+    שלוש קרני אור — מלמעלה, מהאמצע, ומלמטה —<br>
+    כולן נוסעות יחד <span class="highlight">לכיוון העין</span>
+  </div>
+</div>
+
+<!-- ═══════════ SLIDE 4 ═══════════ -->
+<div class="slide" id="s4">
+  <div class="slide-title fade-up d1">העדשה — הקוסמת של העין</div>
+
+  <div class="lens-scene">
+    <!-- Incoming rays -->
+    <div class="in-ray in1"></div>
+    <div class="in-ray in2"></div>
+    <div class="in-ray in3"></div>
+
+    <!-- Lens -->
+    <div class="lens-shape"></div>
+    <div class="lens-label-svg">עדשה</div>
+
+    <!-- Refraction badge -->
+    <div class="refraction-badge">שבירה!</div>
+
+    <!-- Outgoing rays -->
+    <div class="out-ray out1"></div>
+    <div class="out-ray out2"></div>
+    <div class="out-ray out3"></div>
+
+    <!-- Retina -->
+    <div class="retina-line"></div>
+    <div class="retina-label">רשתית</div>
+
+    <!-- Convergence dot -->
+    <div style="position:absolute; right:54px; top:133px; width:12px; height:12px;
+                background:#e74c3c; border-radius:50%;
+                animation: fadeIn 0.5s 1.4s forwards; opacity:0;
+                box-shadow: 0 0 12px #e74c3c;"></div>
+  </div>
+
+  <div class="slide-sub fade-up d2">
+    העדשה <span class="highlight">מכופפת</span> את קרני האור —<br>
+    כל הקרניים מתכנסות לנקודה אחת על <span class="highlight" style="color:#8e44ad">הרשתית</span>
+  </div>
+</div>
+
+<!-- ═══════════ SLIDE 5 ═══════════ -->
+<div class="slide" id="s5">
+  <div class="slide-title fade-up d1">הרשתית והמוח — צוות מנצח</div>
+
+  <div class="brain-scene">
+    <!-- Retina box -->
+    <div class="retina-box">
+      <svg width="50" height="60" viewBox="0 0 50 60">
+        <!-- Simple eye cross-section suggestion -->
+        <ellipse cx="25" cy="30" rx="22" ry="28" fill="none" stroke="#8e44ad" stroke-width="2"/>
+        <!-- Retina arc -->
+        <path d="M8 30 Q25 55 42 30" stroke="#8e44ad" stroke-width="3" fill="none"/>
+        <!-- small inverted arrow (upside down) -->
+        <line x1="25" y1="42" x2="25" y2="52" stroke="#f0c040" stroke-width="2"/>
+        <polygon points="25,42 21,48 29,48" fill="#f0c040"/>
+      </svg>
+      <div style="font-size:12px;color:#8e44ad;font-weight:700;text-align:center;">רשתית<br><span style="font-weight:300;font-size:10px;">תמונה הפוכה</span></div>
+    </div>
+
+    <div class="arrow-brain">←</div>
+
+    <!-- Brain box -->
+    <div class="brain-box">
+      <svg width="60" height="60" viewBox="0 0 60 60">
+        <!-- Simple brain shape -->
+        <path d="M30 10 C15 10 8 20 10 32 C8 38 12 46 20 48 C22 54 28 56 30 56
+                 C32 56 38 54 40 48 C48 46 52 38 50 32 C52 20 45 10 30 10Z"
+              fill="none" stroke="#2ecc71" stroke-width="2"/>
+        <path d="M30 10 C30 30 30 30 30 56" stroke="#2ecc71" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <path d="M15 32 C22 28 38 28 45 32" stroke="#2ecc71" stroke-width="1.5"/>
+      </svg>
+      <div style="font-size:12px;color:#2ecc71;font-weight:700;">מוח<br><span style="font-weight:300;font-size:10px;">מעבד ומתקן</span></div>
+    </div>
+
+    <div class="arrow-brain">←</div>
+
+    <!-- Vision result -->
+    <div class="vision-box">
+      <svg width="50" height="50" viewBox="0 0 50 50">
+        <!-- Simple happy face = we see clearly -->
+        <circle cx="25" cy="25" r="22" fill="none" stroke="#f0c040" stroke-width="2"/>
+        <circle cx="18" cy="20" r="3" fill="#f0c040"/>
+        <circle cx="32" cy="20" r="3" fill="#f0c040"/>
+        <path d="M15 32 Q25 42 35 32" stroke="#f0c040" stroke-width="2.5" fill="none"/>
+      </svg>
+      <div style="font-size:12px;color:#f0c040;font-weight:700;">אנחנו רואים!<br><span style="font-weight:300;font-size:10px;">ישר וברור</span></div>
+    </div>
+  </div>
+
+  <div class="slide-sub fade-up d2">
+    התמונה שנוצרת על הרשתית הפוכה — <span class="highlight" style="color:#2ecc71">המוח</span> מתקן אותה<br>
+    ואנחנו רואים את העולם ישר וברור
+  </div>
+</div>
+
+<!-- ═══════════ SLIDE 6 ═══════════ -->
+<div class="slide" id="s6">
+  <div class="slide-title fade-up d1">בקצרה —</div>
+
+  <div class="summary-steps">
+    <div class="step-pill">אור מוחזר מהעצם</div>
+    <div class="arrow-step">←</div>
+    <div class="step-pill">נכנס לעין</div>
+    <div class="arrow-step">←</div>
+    <div class="step-pill">שבירה בעדשה</div>
+    <div class="arrow-step">←</div>
+    <div class="step-pill">תמונה על הרשתית</div>
+    <div class="arrow-step">←</div>
+    <div class="step-pill">המוח מעבד → ראייה!</div>
+  </div>
+
+  <div class="slide-sub fade-up d3" style="margin-top:16px;">
+    ככה הפיזיקה הופכת אור לתמונה — <span class="highlight">בשבריר שנייה</span>
+  </div>
+</div>
+
+<!-- ═══════════ Navigation ═══════════ -->
+<nav class="nav">
+  <button onclick="go(-1)">→</button>
+  <div class="dots" id="dots"></div>
+  <button onclick="go(1)">←</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  let current = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    // Re-trigger animations by cloning
+    const slide = slides[current];
+    slide.classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    // Reset animations
+    slide.querySelectorAll('[style*="animation"], .ray-line, .in-ray, .out-ray, .retina-line, .retina-label, .refraction-badge').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // reflow
+      el.style.animation = '';
+    });
+  }
+
+  function go(dir) { 
+    const next = current + dir;
+    if (next < 0 || next >= slides.length) 
+      return;
+    goTo(next);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') go(1);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp')   go(-1);
+  });
+</script>
+</body>
+</html>
